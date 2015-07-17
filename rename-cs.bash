@@ -39,7 +39,8 @@ function rename() {
             #that is not alphanumeric, a dot, an underscore, or a dash will be
             #removed.
             TEMP="$(echo "$i" | tr '[:upper:]' '[:lower:]' | \
-                tr -dc '[:alnum:]._-" "' | tr '[" "_] ' '-' )"
+                tr -dc '[:alnum:]._-" "' | perl -pe 's/\s*-+\s*/-/g' | \
+                tr '[" "_]' '-' | perl -pe 's/--+/-/g')"
             #Don't bother to rename a file that is already in the correct form. 
             #Also, only count files that are actually renamed using NumChanged.
             if [ "$i" != $TEMP ]; then
