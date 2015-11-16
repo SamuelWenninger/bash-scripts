@@ -3,11 +3,12 @@
 
 #Created by: Samuel Wenninger
 #Created on: 07/06/2015
-#Last Modified: 11-16-2015 00:40:00
+#Last Modified: 11-16-2015 00:47:18
 #About: This bash script renames all of the files in the current working
 ##directory. To force all files in the current working directory to be renamed
 ##without prompting for confirmation, use "-f". To recursively rename all of
-##the files in all of the subdirectores, use "-r".
+##the files in all of the subdirectores, use "-r". To add a prefix to the files,
+##use "-p" followed by the desired prefix.
 
 #Rename all of the files in the current directory using proper comp. sci. form
 function rename() {
