@@ -3,7 +3,7 @@
 
 #Created by: Samuel Wenninger
 #Created on: 07/06/2015
-#Last Modified: 11-16-2015 00:47:18
+#Last Modified: 11-16-2015 01:08:15
 #About: This bash script renames all of the files in the current working
 ##directory. To force all files in the current working directory to be renamed
 ##without prompting for confirmation, use "-f". To recursively rename all of
@@ -124,13 +124,17 @@ function rename() {
 #Call the rename function recursively on all subdirectories of the specified
 #directory. The "find" command is used to accomplish this.
 function recursive() {
-   read -p "Are you sure you want to rename all of the files within 
-   "$PWD" ?  [yes/no] " -r
-   if [[ "$REPLY" =~ ^[Nn][Oo]$ ]]; then                                        
+    read -p "Are you sure you want to rename all of the files within 
+    "$PWD" ?  [yes/no] " -r
+    if [[ "$REPLY" =~ ^[Nn][Oo]$ ]]; then                                        
        echo; echo "No changes were made"
        exit                                                                    
-   fi                                                                          
-   find . -type d -exec sh -c 'cd "{}" ; ~/bash-scripts/rename-cs.bash ;' \;
+    fi                                                                          
+    if [ $FORCE == 1 ]; then
+       find . -type d -exec sh -c 'cd "{}" ; ~/bash-scripts/rename-cs.bash -fp '"$PREFIX"';' \;
+    else
+       find . -type d -exec sh -c 'cd "{}" ; ~/bash-scripts/rename-cs.bash -p '"$PREFIX"';' \;
+    fi
 }
 
 #Is the renaming forced? Defaultly, no.
@@ -144,10 +148,12 @@ case "${option}"
 in
 f) FORCE=1;;#rename;let ++FLAGS;;
 p) PREFIX="$2";;#rename;let ++FLAGS;;
-r) recursive;let ++FLAGS;;
+r) let ++FLAGS;;
 *) echo; echo "Unsupported argument. Use -[frp]"; let ++FLAGS; echo;;
 esac
 done
 if [ $FLAGS == 0 ]; then
     rename
+else
+    recursive
 fi
