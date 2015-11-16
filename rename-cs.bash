@@ -3,7 +3,7 @@
 
 #Created by: Samuel Wenninger
 #Created on: 07/06/2015
-#Last modified: 09/02/2015
+#Last Modified: 11-16-2015 00:40:00
 #About: This bash script renames all of the files in the current working
 ##directory. To force all files in the current working directory to be renamed
 ##without prompting for confirmation, use "-f". To recursively rename all of
@@ -19,8 +19,8 @@ function rename() {
     declare -A OtherList
     #If no flag, prompt the user for confirmation before renaming files
     if [ $FORCE == 0 ]; then
-        read -p "Are you sure you want to rename all files in the current 
-        directory to the ab-c01.txt format? [yes/no] " -r
+        read -p "Are you sure you want to rename all files in "$PWD"
+        to the ab-c01.txt format? [yes/no] " -r
     #If there is a flag (-f), rename files
     else
         REPLY="yes"
@@ -52,7 +52,7 @@ function rename() {
                 tr '[" "_]' '-' | perl -pe 's/--+/-/g')"
             #Don't bother to rename a file that is already in the correct form. 
             #Also, only count files that are actually renamed using NumChanged.
-            if [ "$i" != $TEMP ]; then
+            if [[ "$i" != $TEMP || $PREFIX != "" ]]; then
                 #If multiple files are renamed to the same name, append the
                 #appropriate number to the name. Bash arrays do not allow for
                 #changing the value after it has been set so "unset" must be
@@ -77,10 +77,28 @@ function rename() {
                         fi
                     done
                 fi
-                mv "$i" "$TEMP"    
-                #Show the user what was changed
-                echo; echo ""$i" ===> "$TEMP""
-                let ++NumChanged
+                #If no flag, prompt the user for confirmation before renaming
+                #files
+                EXISTING=`expr "$TEMP" : '\(^'$PREFIX'\)'`
+                if [[ $PREFIX != $EXISTING ]]; then
+                    TEMP="$PREFIX$TEMP"
+                fi
+                if [ $FORCE == 0 ]; then
+                    read -p "Rename $i ===> $TEMP? [yes/no] " -r
+                #If there is a flag (-f), rename files
+                else
+                    REPLY="yes"
+                fi
+                #Check the REPLY variable which holds the response from the 
+                #"read" command use a regex to check if a "y" or "Y" is entered.
+                if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+                    mv "$i" "$TEMP"    
+                    #Show the user what was changed
+                    echo; echo ""$i" ===> "$TEMP""
+                    let ++NumChanged
+                else
+                    echo; echo "No changes were made"
+                fi
             fi
             #Add new properly formatted names to the associative array of
             #renamed files.
@@ -107,24 +125,26 @@ function rename() {
 function recursive() {
    read -p "Are you sure you want to rename all of the files within 
    "$PWD" ?  [yes/no] " -r
-   if [[ "$REPLY" =~ ^[Nn][Oo]$ ]]; then                                                
+   if [[ "$REPLY" =~ ^[Nn][Oo]$ ]]; then                                        
        echo; echo "No changes were made"
        exit                                                                    
    fi                                                                          
-   find . -type d -exec sh -c 'cd "{}" ; ~/bash-scripts/rename-cs.bash -f ;' \;
+   find . -type d -exec sh -c 'cd "{}" ; ~/bash-scripts/rename-cs.bash ;' \;
 }
 
 #Is the renaming forced? Defaultly, no.
 FORCE=0
 FLAGS=0
+PREFIX=""
 #Take care of all of the flags
-while getopts fr option
+while getopts frp option
 do
 case "${option}"
 in
-f) FORCE=1; rename;let ++FLAGS;;
+f) FORCE=1;;#rename;let ++FLAGS;;
+p) PREFIX="$2";;#rename;let ++FLAGS;;
 r) recursive;let ++FLAGS;;
-*) echo; echo "Unsupported argument. Use -[fr]"; let ++FLAGS; echo;;
+*) echo; echo "Unsupported argument. Use -[frp]"; let ++FLAGS; echo;;
 esac
 done
 if [ $FLAGS == 0 ]; then
